@@ -1,7 +1,9 @@
+import bisect
 import math
 import sys
-from collections import defaultdict, deque
+from collections import defaultdict, deque, Counter
 import re
+import itertools
 
 def finalInstances(instances, averageUtil):
     # Write your code here
@@ -1056,4 +1058,385 @@ def maxProfit(prices):
     return prices[high] - prices[low - 1]
 
 
-print(maxProfit([1, 2, 4]))
+# print(maxProfit([1, 2, 4]))
+
+def updateMatrix(matrix):
+    m = len(matrix)
+    if m == 0:
+        return matrix
+
+    n = len(matrix[0])
+    d = [[float('inf') for _ in range(n)] for _ in range(m)]
+
+    for i in range(m):
+        for j in range(n):
+            if matrix[i][j] == 0:
+                d[i][j] = 0
+            else:
+                if i > 0:
+                    d[i][j] = min(d[i][j], d[i - 1][j] + 1)
+                if j > 0:
+                    d[i][j] = min(d[i][j], d[i][j - 1] + 1)
+    
+    for i in reversed(range(m)):
+        for j in reversed(range(n)):
+            if matrix[i][j] == 0:
+                d[i][j] = 0
+            else:
+                if i < m - 1:
+                    d[i][j] = min(d[i][j], d[i + 1][j] + 1)
+                if j < n - 1:
+                    d[i][j] = min(d[i][j], d[i][j + 1] + 1)
+
+    return d
+
+# print(updateMatrix(
+#     [[0, 0, 0],
+#     [0, 1, 0],
+#     [1, 1, 1]]))
+
+
+def maximumSum(a, m):
+    if m == 0:
+        return 0
+    s = []
+    curr = 0
+    prefix = [0] * n
+    result = 0
+
+    for i in range(len(a)):
+        curr = (curr + a[i] % m) % m
+        prefix[i] = curr
+
+    pq = [prefix[0]]
+    max_sum = max(prefix)
+    for i in range(1, len(a)):
+        left = bisect.bisect_right(pq, prefix[i])
+        if left != len(pq):
+            modsum = (prefix[i] - pq[left] + m) % m
+            max_sum = max(modsum, max_sum)
+        bisect.insort(pq, prefix[i])
+
+    return max_sum
+
+def findAnagrams(s, p):
+    result = []
+
+    # for i in range(len(s) - len(p) + 1):
+    #     if sorted(s[i:i + len(p)]) == sorted(p):
+    #         result.append(i)
+    
+    # for i in range(len(s) - len(p) + 1):
+    #     if Counter(s[i:i + len(p)]) == Counter(p):
+    #         result.append(i)
+    
+    pCounter = Counter(p)
+    sCounter = Counter(s[:len(p) - 1])
+
+    for i in range(len(p) - 1, len(s)):
+        sCounter[s[i]] += 1
+        if sCounter == pCounter:
+            result.append(i - len(p) + 1)
+        
+        sCounter[s[i - len(p) + 1]] -= 1
+        if sCounter[s[i - len(p) + 1]] == 0:
+            del sCounter[s[i - len(p) + 1]]
+
+    return result
+
+
+# print(findAnagrams("ababababab", "aab"))
+
+def minWindow(s, t):
+    if len(t) > len(s):
+        return ''
+
+    result_begin = 0
+    length = float('inf')
+
+    # keep track of all unique characters in t
+    tCounter = Counter(t)
+    # count of all unique characters required to be present in s
+    counter = len(tCounter)
+    begin = end = 0
+
+    while end < len(s):
+        if s[end] in tCounter:
+            tCounter[s[end]] -= 1
+            if tCounter[s[end]] == 0:
+                counter -= 1
+        end += 1
+        
+        while counter == 0:
+            if s[begin] in tCounter:
+                tCounter[s[begin]] += 1
+                if tCounter[s[begin]] > 0:
+                    counter += 1
+
+            if length > end - begin:
+                length = end - begin
+                result_begin = begin
+
+            begin += 1
+
+    if length == float('inf'):
+        return ''
+
+    return s[result_begin:result_begin + length]
+    # if len(t) > len(s) or not t or not s:
+    #         return ''
+
+    # result_begin = 0
+    # length = float('inf')
+    # tCounter = Counter(t)
+    # counter = len(tCounter)
+    # begin = end = 0
+    
+    # filtered_s = []
+    # for i, c in enumerate(s):
+    #     if c in tCounter:
+    #         filtered_s.append((i, c))
+
+    # while end < len(filtered_s):
+    #     tCounter[filtered_s[end][1]] -= 1
+    #     if tCounter[filtered_s[end][1]] == 0:
+    #         counter -= 1
+    #     end += 1
+
+    #     while counter == 0:
+    #         tCounter[filtered_s[begin][1]] += 1
+    #         if tCounter[filtered_s[begin][1]] > 0:
+    #             counter += 1
+            
+    #         r = filtered_s[end - 1][0]
+    #         l = filtered_s[begin][0]
+            
+    #         if length > r - l:
+    #             length = r - l
+    #             result_begin = l
+
+    #         begin += 1
+            
+    # if length == float('inf'):
+    #     return ''
+
+    # return s[result_begin:result_begin + length + 1]
+
+
+# print(minWindow("ADOBECODEBANC", "ABC"))
+# print(minWindow('a', 'b'))
+
+def findSubstring(s, words):
+    if not s or not words:
+        return []
+
+    result = []
+    word_length = len(words[0])
+    length = word_length * len(words)
+    word_map = Counter(words)
+    reference = Counter(words)
+    counter = len(word_map)
+    begin = 0
+    end = 0
+
+    if length > len(s):
+        return []
+
+    for i in range(word_length):
+        begin = i
+        end = i
+        word_map = reference.copy()
+        counter = len(word_map)
+        print(word_map, length, counter)
+
+        while end + word_length - 1 < len(s):
+            last_word = s[end:end + word_length]
+
+            if last_word in word_map:
+                word_map[last_word] -= 1
+                if word_map[last_word] == 0:
+                    counter -= 1
+            
+            print(counter, begin, end)
+
+            if end - begin + word_length == length:
+                # print(word_map, counter, begin)
+                if counter == 0:
+                    result.append(begin)
+
+                first_word = s[begin:begin + word_length]
+
+                if first_word in word_map:
+                    word_map[first_word] += 1
+                    if word_map[first_word] == 1:
+                        counter += 1
+
+                begin += word_length
+
+            end += word_length
+
+    return result
+    
+
+# print(findSubstring("bcabbcaabbccacacbabccacaababcbb",
+#                     ["c", "b", "a", "c", "a", "a", "a", "b", "c"]))
+
+def getMaxSubStringLength(s):
+    begin = 0
+    end = 1
+    ans = 0
+
+    while end < len(s):
+        if s[end] == s[end - 1]:
+            ans = max(ans, end - begin + 1)
+        else:
+            begin = end
+
+        end += 1
+
+    return ans
+
+def characterReplacement(s, k):
+    if k >= len(s):
+        return len(s)
+    
+    count = Counter()
+    start = res = 0
+
+    for end in range(len(s)):
+        count[s[end]] += 1
+
+        if end - start + 1 - count.most_common(1)[0][1] > k:
+            count[s[start]] -= 1
+            start += 1
+        
+        # res = max(res, end - start + 1)
+
+    return end - start + 1
+
+def subsets(nums):
+    n = len(nums)
+    output = []
+
+    for i in range(2**n, 2**(n + 1)):
+        bitmask = bin(i)[3:]
+
+        output.append([nums[j] for j in range(n) if bitmask[j] == '1'])
+
+    return output
+
+# print(subsets([1, 2, 3, 4]))
+
+def isPrime(num):
+    if num <= 3:
+        return num > 1
+    elif num % 2 == 0 or num % 3 == 0:
+        return False
+
+    i = 5
+    while i * i < num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+
+    return True
+
+# print(isPrime(23))
+
+def missingNumbers(arr, brr):
+    original_counter = Counter(brr)
+
+    for num in arr:
+        if num in original_counter:
+            original_counter[num] -= 1
+            if original_counter[num] == 0:
+                del original_counter[num]
+
+    return list(itertools.chain.from_iterable([[x] * f for x, f in original_counter.items()]))
+
+
+# print(missingNumbers([203, 204, 205, 206, 207, 208, 203, 204, 205, 206], [203, 204, 204, 204, 205, 206, 207, 205, 208, 203, 206, 205, 206, 204]))
+
+def powerSet(nums):
+    powerset = []
+    inter = []
+
+    def backtrack(index):
+        print(inter)
+        powerset.append(inter[:])
+
+        for i in range(index, len(nums)):
+            inter.append(nums[i])
+            backtrack(i + 1)
+            inter.pop()
+
+    backtrack(0)
+    return powerset
+
+# print(powerSet([1, 2, 3]))
+
+
+def subsetsWithDup(nums):
+    nums = sorted(nums)
+    powerSet = []
+    inter = []
+
+    def backtrack(index):
+        powerSet.append(inter[:])
+
+        for i in range(index, len(nums)):
+            if i > index and nums[i] == nums[i - 1]:
+                continue
+            inter.append(nums[i])
+            backtrack(i + 1)
+            inter.pop()
+
+    backtrack(0)
+    return powerSet
+
+
+# print(subsetsWithDup([4, 4, 4, 1, 4]))
+
+def combinationSum(candidates, target):
+    output = []
+    inter = []
+    candidates = sorted(candidates)
+
+    def backtrack(index):
+        print(inter, index, target - sum(inter))
+        if sum(inter) == target:
+            output.append(inter[:])
+        if sum(inter) >= target or target - sum(inter) < candidates[index]:
+            return
+
+        inter.append(candidates[index])
+        backtrack(index)
+        inter.pop()
+
+        for i in range(index + 1, len(candidates)):
+            inter.append(candidates[i])
+            backtrack(i)
+            inter.pop()
+
+    backtrack(0)
+    return output
+
+# print(combinationSum([1], 2))
+
+def combinationSum2(candidates, target):
+    output = []
+
+    def dfs(nums, targ, path):
+        print(nums, targ, path)
+        if targ < 0:
+            return
+        if targ == 0:
+            output.append(path)
+            return
+        for i in range(len(nums)):
+            dfs(nums[i:], targ - nums[i], path + [nums[i]])
+
+    dfs(candidates, target, [])
+    return output
+
+print(combinationSum2([2, 3, 6, 7], 7))
