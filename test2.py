@@ -1423,7 +1423,7 @@ def combinationSum(candidates, target):
 
 # print(combinationSum([1], 2))
 
-def combinationSum2(candidates, target):
+def combinationSum1_2(candidates, target):
     output = []
 
     def dfs(nums, targ, path):
@@ -1439,4 +1439,115 @@ def combinationSum2(candidates, target):
     dfs(candidates, target, [])
     return output
 
-print(combinationSum2([2, 3, 6, 7], 7))
+# print(combinationSum2([2, 3, 6, 7], 7))
+
+def combinationSum2(candidates, target):
+    candidates = sorted(candidates)
+    output = []
+
+    def dfs(nums, targ, path):
+        print(nums, targ, path)
+        if targ < 0:
+            return
+        if targ == 0:
+            output.append(path)
+            return
+
+        for i in range(len(nums)):
+            if targ - nums[i] < 0:
+                break
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+            dfs(nums[i + 1:], targ - nums[i], path + [nums[i]])
+
+    dfs(candidates, target, [])
+    return output
+
+def combinationSum2_2(candidates, target):
+    candidates = sorted(candidates)
+    output = []
+    inter = []
+
+    def backtrack(index):
+        print(inter, index)
+        if sum(inter) == target:
+            output.append(inter[:])
+        if sum(inter) >= target or (index < len(candidates) and target - sum(inter) < candidates[index]):
+            return
+        
+        for i in range(index, len(candidates)):
+            if i > index and candidates[i] == candidates[i - 1]:
+                continue
+            inter.append(candidates[i])
+            backtrack(i + 1)
+            inter.pop()
+
+    backtrack(0)
+    return output
+
+    
+# print(combinationSum2_2([10,1,2,7,6,1,5], 8))
+# print(combinationSum2_2([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], 27))
+
+def solveNQueens(n):
+    result = []
+
+    def dfs(queens, xy_dif, xy_sum):
+        print(queens, xy_dif, xy_sum)
+        x = len(queens)
+        if x == n:
+            result.append(queens)
+            return
+
+        for y in range(n):
+            print(y, xy_dif, xy_sum, x)
+            if y not in queens and x - y not in xy_dif and x + y not in xy_sum:
+                print('got inside')
+                dfs(queens + [y], xy_dif + [x - y], xy_sum + [x + y])
+
+    dfs([], [], [])
+
+    return [['.' * i + 'Q' + '.' * (n - i - 1) for i in row] for row in result]
+
+# print(solveNQueens(4))
+
+
+def get_products_of_all_ints_except_at_index(int_list):
+
+    # Make a list with the products
+    pre_mult = [1]
+    post_mult = [1]
+    output = []
+
+    j = len(int_list) - 2
+    for i in range(1, len(int_list)):
+        pre_mult.append(pre_mult[-1] * int_list[i - 1])
+        post_mult.append(post_mult[-1] * int_list[j + 1])
+        j -= 1
+        print(pre_mult, post_mult)
+
+    j = len(int_list) - 1
+    for i in range(len(int_list)):
+        output.append(pre_mult[i] * post_mult[j])
+        j -= 1
+
+    return output
+
+print(get_products_of_all_ints_except_at_index([3, 1, 2, 5, 6, 4]))
+
+def fast_pointer_test(arr):
+    j = 0
+    for _ in range(0, len(arr), 2):
+        j += 1
+
+    return arr[j - 1]
+
+def reverse_array(arr):
+    j = len(arr) - 1
+    for i in range(len(arr) // 2):
+        arr[i], arr[j] = arr[j], arr[i]
+        j -= 1
+
+    return arr
+
+# print(reverse_array([3, 1, 2, 5, 6, 4, 3, 4]))
